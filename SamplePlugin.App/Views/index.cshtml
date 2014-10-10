@@ -1,0 +1,59 @@
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<SamplePlugin.App.ViewModel.HomeModel>
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <!-- Bootstrap -->
+    <link href="Content/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="css/mycss.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Static navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Sample Plugin</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </div>
+
+
+    <div class="jumbotron">
+        <h1>Sample plugin!</h1>
+        <p>Using <a href="http://nancyfx.org/">Nancy</a> and <a href="http://autofac.org/">Autofac</a></p>
+    </div>
+
+
+    <div class="container">
+
+
+        @foreach(SamplePlugin.App.ViewModel.ServiceItem item in @Model.Services)
+        { 
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">@item.Title</h3>
+            </div>
+            @Html.Raw(@item.Body)
+        </div>
+        }
+    </div>
+
+    <script src="Content/jquery/jquery-1.11.min.js"></script>
+    <script src="Content/bootstrap/js/bootstrap.min.js"></script>
+</body>
+</html>

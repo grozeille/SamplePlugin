@@ -1,4 +1,8 @@
-﻿using Nancy;
+﻿using Microsoft.Practices.ServiceLocation;
+using Nancy;
+using SamplePlugin.Api;
+using SamplePlugin.App.ViewModel;
+using System.Linq;
 
 namespace SamplePlugin.App.Modules
 {
@@ -8,7 +12,12 @@ namespace SamplePlugin.App.Modules
         {
             Get["/"] = parameters =>
             {
-                return "Hello";
+                // service locator
+                var services = ServiceLocator.Current.GetAllInstances<IService>();
+
+                var serviceItems = services.Select(x => new ServiceItem { Body = x.Body, Title = x.Title }).ToArray();
+
+                return View["index", new HomeModel { Services = serviceItems }];
             };
         }
     }

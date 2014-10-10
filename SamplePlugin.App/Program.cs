@@ -1,65 +1,63 @@
 ﻿using Autofac;
 using Autofac.Extras.CommonServiceLocator;
+using bbv.Common.EventBroker;
+using Microsoft.Owin.Hosting;
 using Microsoft.Practices.ServiceLocation;
-using SamplePlugin.Api;
+using SamplePlugin.App.Modules;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SamplePlugin.App
 {
     public class Program
     {
-        private IMyService _service;
-
         static void Main(string[] args)
         {
-            // list all assemblies in the plugins folder
-            List<Assembly> allAssemblies = new List<Assembly>();
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "plugins");
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = assembly.GetName().Name + ".Hello.txt";
 
-            foreach (string dll in Directory.GetFiles(path, "*Module.dll"))
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
             {
-                allAssemblies.Add(Assembly.LoadFile(dll));
+                string result = reader.ReadToEnd();
+                Console.WriteLine(result);
+                Console.WriteLine();
             }
+
+            // search for assemblies in the plugin folder
+            PluginUtils.SetupPluginAssemblyPath();
+
+            // list all assemblies in the plugins folder
+            IList<Assembly> allAssemblies = PluginUtils.FindPluginAssemblies();
 
             // auto-load all modules
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(allAssemblies.ToArray());
 
-            // run the main program
-            builder.RegisterType<Program>();
-            using (var container = builder.Build()) 
+            // register the Event Broker
+            var eventBroker = new EventBroker();
+            builder.RegisterInstance(eventBroker).As<IEventBroker>();
+
+            // register the Nancy modules
+            builder.RegisterType<HomeModule>();
+
+            using (var container = builder.Build())
             {
-                // Set the service locator to an AutofacServiceLocator
+                // setup serviceLocator
                 var csl = new AutofacServiceLocator(container);
                 ServiceLocator.SetLocatorProvider(() => csl);
 
-                container.Resolve<Program>().Run();
+                var url = "http://+:9898";
+                using (WebApp.Start<Startup>(url))
+                {
+                    Console.WriteLine("Running on {0}", url);
+                    Console.WriteLine("Press enter to exit");
+                    Console.ReadKey(true);
+                }
             }
-
-            Console.Write("Press a key to exit");
-            Console.ReadKey();
-            
-            //AutoMock automock = AutoMock.GetLoose();
-        }
-        
-        public Program(IMyService service)
-        {
-            this._service = service;
-        }
-
-        public void Run()
-        {
-            // dependency injection
-            _service.SayHello();
-
-            // service locator
-            ServiceLocator.Current.GetInstance<IMyService>().SayHello();
         }
     }
 }
